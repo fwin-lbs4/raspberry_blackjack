@@ -1,11 +1,9 @@
 import time
+import keyboard
 
 class dice:
-  def __init__(self):
-    self.__isPressed  = False
-
-  def get_switch(self):
-    return self.__isPressed
+  def get_switch():
+    return keyboard.is_pressed("space")
 
 def get_clicks():
   # waiting for first click
@@ -24,8 +22,7 @@ def get_clicks():
     prev_state = state
 
     # if the switch is pressed set state to True
-    if dice.get_switch():
-      state = True
+    state = dice.get_switch()
 
     # when state was set to true and prev_state was false, we just pressed the button
     if state and not prev_state:
@@ -34,3 +31,5 @@ def get_clicks():
     # How can you calculate that value from time.sleep(0.015)
     time.sleep(0.015)
   return clicks
+
+print(get_clicks())
