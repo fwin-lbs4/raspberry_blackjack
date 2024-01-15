@@ -16,26 +16,28 @@ class Player:
     return self.__cpu
   
   def reset(self):
-    self.__points = 18 if self.__test and not self.__cpu else 0
+    self.__points = 0
   
   def roll(self):
+    if self.__test:
+      self.addPoints(random.randint(1, 6))
+      return
+
     delay = 0.0715
     if self.__cpu:
       delay = delay / 2
+
     rolls = random.randint(24, 32)
 
     number = 0
 
     for roll in range(0, rolls):
       number = random.randint(1, 6)
-      if not self.__test:
-        print("Rolling...", str(number), end='\r' if roll < (rolls - 1) else '\n')
+      print("Rolling...", str(number), end='\r' if roll < (rolls - 1) else '\n')
 
-      if not self.__test:
-        time.sleep(delay)
+      time.sleep(delay)
 
-    if not self.__test:
-      print(self.__name, "rolled a", str(number))
+    print(self.__name, "rolled a", str(number))
     self.addPoints(number)
 
   def addPoints(self, roll: int):

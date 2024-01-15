@@ -18,58 +18,53 @@ class Game:
 
   def start(self):
     try:
-      GPIO.setmode(GPIO.BOARD)
-      GPIO.setwarnings(False)
-      GPIO.setup(self.__button, GPIO.IN)
+      if not self.__test:
+        GPIO.setmode(GPIO.BOARD)
+        GPIO.setwarnings(False)
+        GPIO.setup(self.__button, GPIO.IN)
 
       while self.__running:
         # if the last round has been played end the loop
         if self.__currentRound > self.__rounds:
           self.__running = False
-          break
+          if self.__player.getScore() is not self.__cpu.getScore():
+            break
 
-        print("Round", self.__currentRound, "start!" if not self.__test else "")
+        if not self.__test:
+          print("Round", self.__currentRound, "start!")
 
-        # reset points of both players to 0
-        self.__player.reset()
+        # reset points of both players to 0, don't reset player if test
+        if not self.__test:
+          self.__player.reset()
         self.__cpu.reset()
 
-        # start as the player
         if not self.__test:
+          # start as the player
           self.__currentPlayer = self.__player
           self.__turn()
 
-        # if the player has 21 points auto-win the player
-        if self.__player.getPoints() == 21:
-          if not self.__test:
+          # if the player has 21 points auto-win the player
+          if self.__player.getPoints() == 21:
             print("Reached 21 points! Player wins round!")
-          self.__player.incrementScore()
-          self.__currentRound += 1
-          continue
+            self.__player.incrementScore()
+            self.__currentRound += 1
+            continue
 
-        # if the player has more than 21 points auto-loose the player
-        if self.__player.getPoints() > 21:
-          if not self.__test:
+          # if the player has more than 21 points auto-loose the player
+          if self.__player.getPoints() > 21:
             print("Went over 21 points! CPU wins round!")
-          self.__cpu.incrementScore()
-          self.__currentRound += 1
-
-          if not self.__test:
+            self.__cpu.incrementScore()
+            self.__currentRound += 1
             time.sleep(0.5)
+            continue
 
-          continue
-
-        # if the player has less than 16 points also auto-loose the player, the cpu will always be able to win
-        if self.__player.getPoints() < 16:
-          if not self.__test:
+          # if the player has less than 16 points also auto-loose the player, the cpu will always be able to win
+          if self.__player.getPoints() < 16:
             print("Under 16 points rolled! CPU wins round!")
-          self.__cpu.incrementScore()
-          self.__currentRound += 1
-
-          if not self.__test:
+            self.__cpu.incrementScore()
+            self.__currentRound += 1
             time.sleep(0.5)
-
-          continue
+            continue
 
         # start the cpu turn
         self.__currentPlayer = self.__cpu
@@ -114,7 +109,8 @@ class Game:
     except KeyboardInterrupt:
       self.__running = False
     finally:
-      GPIO.cleanup()
+      if not self.__test:
+        GPIO.cleanup()
 
   def __turn(self):
     if not self.__test:
@@ -161,6 +157,22 @@ class Game:
     return 1
 
   def __determineWinner(self):
+    if self.__test:
+      playerScore = self.__player.getScore()
+      cpuScore = self.__cpu.getScore()
+      winnerScore = playerScore if playerScore > cpuScore else cpuScore
+      percent = str(round((float(winnerScore) / float(self.__rounds)) * 100, 2)).ljust(5, "0") + "%"
+
+      name = ""
+
+      if playerScore > cpuScore:
+        name = self.__player.getName()
+      else:
+        name = self.__cpu.getName()
+
+      print(name, "has won", percent, "of rounds!")
+      return
+
     playerScore = self.__player.getScore()
     cpuScore = self.__cpu.getScore()
 
@@ -170,8 +182,3 @@ class Game:
     winner = self.__player.getName() if playerScore > cpuScore else self.__cpu.getName()
 
     print(winner + " has won! Congratulations!")
-
-    if self.__test:
-      winnerScore = playerScore if playerScore > cpuScore else cpuScore
-      percent = (float(winnerScore) / float(self.__rounds)) * 100
-      print(winner, "has won", str(round(percent, 2)) + "%", "of rounds!")
