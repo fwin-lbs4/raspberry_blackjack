@@ -1,6 +1,7 @@
 import time
-import RPi.GPIO as GPIO
-import Player
+# import RPi.GPIO as GPIO
+from Player import *
+import keyboard
 
 class Game:
   def __init__(self, rounds: int, pin: int):
@@ -9,48 +10,64 @@ class Game:
     self.__player = Player("Flo", False)
     self.__cpu = Player("CPU", True)
 
-    self.__currentRound = 0
+    self.__currentRound = 1
     self.__currentPlayer = self.__player
 
     self.__running = True
 
   def start(self):
     try:
-      GPIO.setmode(GPIO.BCM)
-      GPIO.setwarnings(False)
-      GPIO.setup(self.__button, GPIO.IN)
+      # GPIO.setmode(GPIO.BCM)
+      # GPIO.setwarnings(False)
+      # GPIO.setup(self.__button, GPIO.IN)
 
       while self.__running:
-        if self.__currentRound is self.__rounds:
+        if self.__currentRound > self.__rounds:
           self.__running = False
           break
+
+        self.__player.reset()
+        self.__cpu.reset()
 
         self.__currentPlayer = self.__player
         self.__turn()
 
         if self.__player.getPoints() == 21:
+          print("Reached 21 points! Player wins round!")
           self.__player.incrementScore()
           self.__currentRound += 1
           continue
 
-        if self.__player.getPoints() < 21:
+        if self.__player.getPoints() > 21:
+          print("Went over 21 points! CPU wins round!")
           self.__cpu.incrementScore()
           self.__currentRound += 1
+          time.sleep(0.5)
+          continue
+
+        if self.__player.getPoints() < 16:
+          print("Under 16 points rolled! CPU wins round!")
+          self.__cpu.incrementScore()
+          self.__currentRound += 1
+          time.sleep(0.5)
           continue
 
         self.__currentPlayer = self.__cpu
         self.__turn()
 
-        if self.__cpu.getPoints() < 21:
+        if self.__cpu.getPoints() > 21:
+          print("CPU went over 21 points! Player wins round!")
           self.__player.incrementScore()
           self.__currentRound += 1
           continue
 
         if self.__player.getPoints() < self.__cpu.getPoints():
+          print("CPU has more points than Player! CPU wins round!")
           self.__cpu.incrementScore()
           self.__currentRound += 1
           continue
 
+        print("Player has more points than CPU! Player wins round!")
         self.__player.incrementScore()
         self.__currentRound += 1
         continue
@@ -60,11 +77,14 @@ class Game:
     except KeyboardInterrupt:
       self.__running = False
     finally:
-      GPIO.cleanup()
+      pass
+      # GPIO.cleanup()
 
   def __turn(self):
+    print("Turn start: " + self.__currentPlayer.getName())
+
     while True:
-      print(self.__currentPlayer.getName(), " points: ", self.__currentPlayer.getPoints())
+      print(self.__currentPlayer.getName() + " points: " + str(self.__currentPlayer.getPoints()))
 
       if self.__currentPlayer.getPoints() >= 21:
         break
@@ -73,7 +93,7 @@ class Game:
         if self.__getClicks() >= 2:
           break
 
-      if self.__currentPlayer.isCpu() and self.__cpu.getPoints() < self.__player.getPoints():
+      if self.__currentPlayer.isCpu() and self.__cpu.getPoints() > self.__player.getPoints():
         break;
 
       self.__currentPlayer.roll()
@@ -81,7 +101,7 @@ class Game:
   def __getClicks(self):
     print("Press once to roll, press twice to end your turn!")
 
-    while GPIO.input(self.__button) is not GPIO.LOW:
+    while not keyboard.is_pressed("space"):
       time.sleep(0.05)
     state = True
     prev_state = True
@@ -90,7 +110,7 @@ class Game:
     while time.time() < first_click + 0.3:
       prev_state = state
 
-      state = GPIO.input(self.__button) is GPIO.LOW
+      state = keyboard.is_pressed("space")
 
       if state and not prev_state:
         return 2
@@ -101,13 +121,16 @@ class Game:
   
   def __determineWinner(self):
     playerScore = self.__player.getScore()
-    cpuScore = self.__player.getScore()
+    cpuScore = self.__cpu.getScore()
+
+    print("Player-score: " + str(playerScore))
+    print("CPU-score:    " + str(cpuScore))
 
     if playerScore > cpuScore:
-      self.__player.won()
+      self.__player.win()
     
     if playerScore < cpuScore:
-      self.__cpu.won()
+      self.__cpu.win()
 
 
   

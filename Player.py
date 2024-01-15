@@ -14,13 +14,15 @@ class Player:
   def isCpu(self):
     return self.__cpu
   
+  def reset(self):
+    self.__points = 0
+  
   def roll(self):
     print("Rolling...")
     time.sleep(0.5)
     number = random.randint(1, 6)
-    print(self.__name, " rolled a ", number)
-    self.addPoints(random.randint(1, 6))
-    time.sleep(1)
+    print(self.__name + " rolled a " + str(number))
+    self.addPoints(number)
 
   def addPoints(self, roll: int):
     if roll > 6:
@@ -38,13 +40,13 @@ class Player:
     return self.__points
 
   def incrementScore(self):
-    self.__score = self.__score + 1
+    self.__score += 1
 
   def getScore(self):
     return self.__score
 
   def win(self):
-    print("Congratulations ", self.__name, "! You won!")
+    print("Congratulations " + self.__name + "! You won!")
 
   def loose(self):
     if self.__cpu:

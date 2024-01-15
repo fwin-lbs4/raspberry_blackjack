@@ -1,6 +1,7 @@
 import time
-import RPi.GPIO as GPIO
 import signal
-import Game
+from Game import *
 
-game = Game()
+game = Game(3, 0)
+
+game.start()
