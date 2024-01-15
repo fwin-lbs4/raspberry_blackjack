@@ -1,7 +1,7 @@
-import time
-import signal
 from Game import *
 
-game = Game(3, 0)
+name = input('Enter your name: ')
+
+game = Game(3, 33, name)
 
 game.start()
