@@ -19,8 +19,10 @@ class Player:
     self.__points = 18 if self.__test and not self.__cpu else 0
   
   def roll(self):
-    delay = 0.05 if self.__cpu else 0.125
-    rolls = random.randint(16, 32)
+    delay = 0.0715
+    if self.__cpu:
+      delay = delay / 2
+    rolls = random.randint(24, 32)
 
     number = 0
 

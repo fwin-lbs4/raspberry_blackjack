@@ -170,3 +170,8 @@ class Game:
     winner = self.__player.getName() if playerScore > cpuScore else self.__cpu.getName()
 
     print(winner + " has won! Congratulations!")
+
+    if self.__test:
+      winnerScore = playerScore if playerScore > cpuScore else cpuScore
+      percent = (float(winnerScore) / float(self.__rounds)) * 100
+      print(winner, "has won", str(round(percent, 2)) + "%", "of rounds!")
