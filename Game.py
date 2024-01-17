@@ -1,5 +1,6 @@
 import time
-import RPi.GPIO as GPIO
+# from GPIOClicks import *
+from KeyboardClicks import *
 from Player import *
 
 class Game:
@@ -16,12 +17,11 @@ class Game:
 
     self.__test = test
 
+    self.__clicker = Clicks()
+
   def start(self):
     try:
-      if not self.__test:
-        GPIO.setmode(GPIO.BOARD)
-        GPIO.setwarnings(False)
-        GPIO.setup(self.__button, GPIO.IN)
+      self.__clicker.setup()
 
       while self.__running:
         # if the last round has been played end the loop
@@ -109,8 +109,7 @@ class Game:
     except KeyboardInterrupt:
       self.__running = False
     finally:
-      if not self.__test:
-        GPIO.cleanup()
+      self.__clicker.cleanup()
 
   def __turn(self):
     if not self.__test:
@@ -125,7 +124,7 @@ class Game:
         break
 
       # if the player clicks the button twice end the round
-      if not self.__currentPlayer.isCpu() and self.__getClicks() >= 2:
+      if not self.__currentPlayer.isCpu() and self.__clicker.getClicks() >= 2:
         break
 
       # if it's the cpu turn and the cpu has more points than the player end the turn
@@ -134,27 +133,6 @@ class Game:
 
       # roll for the currentPlayer
       self.__currentPlayer.roll()
-
-  def __getClicks(self):
-    print("Press once to roll, press twice to end your turn!")
-
-    while GPIO.input(self.__button) is not GPIO.LOW:
-      time.sleep(0.05)
-    state = True
-    prev_state = True
-    first_click = time.time()
-
-    while time.time() < first_click + 0.3:
-      prev_state = state
-
-      state = GPIO.input(self.__button) is GPIO.LOW
-
-      if state and not prev_state:
-        return 2
-
-      time.sleep(0.015)
-
-    return 1
 
   def __determineWinner(self):
     if self.__test:
